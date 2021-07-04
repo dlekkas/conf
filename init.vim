@@ -18,7 +18,7 @@ nnoremap <leader>q :q<CR>
 map <C-h> <C-w>h
 map <C-j> <C-w>j
 map <C-k> <C-w>k
-map <c-l> <c-w>l
+map <C-l> <C-w>l
 
 
 "FZF related mappings
@@ -35,7 +35,7 @@ map <leader>nf :NERDTreeFind<CR>
 nmap <leader>gf <Plug>(coc-definition)
 
 "tagbar mappings
-"map <leader>t :Tagbar<CR>
+map <leader>t :Tagbar<CR>
 
 " Switch between tabs
 nmap <leader>1 1gt
@@ -139,11 +139,34 @@ elseif executable('ag')
 	let g:ackprg = 'ag --vimgrep'
 endif
 
+" Floating terminal
+" :FloatermNew opens a floaterm window
+Plug 'voldikss/vim-floaterm'
+
+" Session saving for neovim
+Plug 'tpope/vim-obsession'
+
+" Provides integration with `pandoc` document converter and also works with
+" documents written in its markdown variant
+Plug 'vim-pandoc/vim-pandoc'
+Plug 'vim-pandoc/vim-pandoc-syntax'
+
+" Preview markdown on browser with synchronised scrolling
+Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() },
+																			\'for': ['markdown', 'vim-plug']}
+
+" Provides live preview of output PDF of LaTeX files
+" A TeX engine (e.g. pdflatex) needs to be installed
+" and a PDF viewer (e.g. evince)
+Plug 'xuhdev/vim-latex-live-preview', {'for': 'tex' }
+" let g:livepreview_previewer = 'evince'
+" let g:livepreview_engine = 'pdflatex'
 
 Plug 'neoclide/coc.nvim', { 'branch': 'release'}  "autocompletion
 Plug 'mbbill/undotree'   "undo visualizer
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-fugitive'
+
 Plug 'morhetz/gruvbox'
 let g:gruvbox_contrast_dark='medium'
 Plug 'vim-airline/vim-airline'
