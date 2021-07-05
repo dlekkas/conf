@@ -199,10 +199,10 @@ Plug 'vim-airline/vim-airline'
 
 " Syntax checking plugin
 Plug 'vim-syntastic/syntastic'
-let g:syntastic_always_populate_loc_list = 1
-let g:syntastic_auto_loc_list = 1
-let g:syntastic_check_on_open = 1
-let g:syntastic_check_on_wq = 0
+"let g:syntastic_always_populate_loc_list = 1
+"let g:syntastic_auto_loc_list = 1
+"let g:syntastic_check_on_open = 1
+"let g:syntastic_check_on_wq = 0
 
 " cpplint is a static code checker for C++ that follows Google's C++ style
 " guide [https://google.github.io/styleguide/cppguide.html]. For this to work
@@ -214,7 +214,6 @@ let g:syntastic_cpp_cpplint_exec = 'cpplint'
 Plug 'majutsushi/tagbar'
 
 call plug#end()
-
 
 
 autocmd FileType cpp setlocal commentstring=//\ %s
