@@ -174,6 +174,7 @@ fi
 
 
 echo "Installing ohmyzsh ..."
+# TODO(dimlek): add build from source for zsh
 rm -rf ~/.oh-my-zsh
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --keep-zshrc --unattended
 if ! grep -q "^\s*source \$ZSH/oh-my-zsh.sh" $ZSHRC; then
@@ -188,8 +189,7 @@ EOF
 
 fi
 
-echo "Checking and installing fzf ..."
-command -v fzf &>/dev/null || brew install fzf
+# fzf config set-up
 if ! grep -q "^\s*export FZF_DEFAULT_COMMAND" $ZSHRC; then
   cat <<EOF >>$ZSHRC
 
@@ -200,6 +200,3 @@ fi
 EOF
 
 fi
-#################################################################
-
-
