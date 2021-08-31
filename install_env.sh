@@ -1,4 +1,4 @@
-readonly VIMRC=~/.vimrc
+readonly VIMRC=~/.config/nvim/init.vim
 readonly VIM_DIR=~/.vim
 readonly COC_SETTINGS_JSON=$VIM_DIR/coc-settings.json
 readonly COC_SETTINGS_VIMRC=$VIM_DIR/coc-settings.vimrc
@@ -6,11 +6,18 @@ readonly ZSHRC=~/.zshrc
 readonly TIMESTAMP=$(date "+%y-%m-%d-%H-%M")
 readonly LOCAL_INSTALL_DIR=$HOME/.local
 
+BASEDIR=$(dirname $(realpath "$0"))
+
+VIM_CONF_FILE=${BASEDIR}/init.vim
+ZSH_CONF_FILE=${BASEDIR}/zshrc
+
 CMAKE_VERSION=3.20.5
 TMUX_VERSION=3.2
 
 # Install autoconf, automake and pkg-config since everything needs those
 mkdir -p $LOCAL_INSTALL_DIR/opt
+
+export PATH=$HOME/.local/bin:$PATH
 
 echo "Checking and installing cmake"
 if ! command -v cmake &>/dev/null; then
@@ -21,7 +28,7 @@ if ! command -v cmake &>/dev/null; then
 		https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}.tar.gz
 	tar -xf /tmp/cmake-${CMAKE_VERSION}.tar.gz -C ${LOCAL_INSTALL_DIR}/opt
 	# build from source and install to custom location
-	pushd ${LOCAL_INSTALL_DIR}/opt/cmake
+	pushd ${LOCAL_INSTALL_DIR}/opt/cmake-${CMAKE_VERSION}
 	./bootstrap --prefix=${LOCAL_INSTALL_DIR} && make && make install
 	popd
 fi
@@ -29,6 +36,9 @@ fi
 
 echo "Checking and installing neovim"
 if ! command -v nvim &>/dev/null; then
+	# install prerequisites
+	sudo apt install gettext libtool libtool-bin autoconf automake pkg-config unzip curl
+	# clone neovim repo
 	git clone -b stable https://github.com/neovim/neovim ${LOCAL_INSTALL_DIR}/opt/neovim
 	# build from source and install to custom location
 	pushd ${LOCAL_INSTALL_DIR}/opt/neovim
@@ -38,18 +48,23 @@ if ! command -v nvim &>/dev/null; then
 	mkdir -p $HOME/.config/nvim
 fi
 
-echo "Setting up neovim ..."
-if [ -f $VIMRC ]; then
+
+echo "Setting up neovim config file..."
+#if [ -f $VIMRC ]; then
+if ! diff -I '^"' ${VIM_CONF_FILE} ${VIMRC}; then
   old_vimrc="$VIMRC.$TIMESTAMP"
   cp $VIMRC $old_vimrc
-  echo "\" old vimrc was backed up to $old_vimrc" > $VIMRC
+  echo "\"old vimrc backed up to $old_vimrc" > $VIMRC
+  cat $VIM_CONF_FILE >> $VIMRC
 fi
 
 
 
 echo "Checking and installing rust"
 # install rust in a non-interactive manner
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+if ! command -v rustc && ! command -v ~/.cargo/bin/rustc; then
+	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+fi
 
 # install ripgrep tool
 echo "Checking and installing ripgrep..."
@@ -63,11 +78,12 @@ if ! command -v node &> /dev/null; then
 	tar -xf /tmp/node-latest.tar.gz -C ${LOCAL_INSTALL_DIR}/opt
 
 	# build from source and install to custom location
-	pushd ${LOCAL_INSTALL_DIR}/opt/`ls -rd node-v*`
+	pushd `ls -rd ${LOCAL_INSTALL_DIR}/opt/node-v*`
 	./configure --prefix=${LOCAL_INSTALL_DIR} && make && make install
 	popd
 fi
 
+exit 1
 echo "Checking and installing Ninja..."
 if ! command -v ninja &> /dev/null; then
 	git clone -b release git://github.com/ninja-build/ninja.git \
