@@ -1,8 +1,9 @@
 readonly VIMRC=~/.config/nvim/init.vim
-readonly VIM_DIR=~/.vim
+readonly VIM_DIR=~/.config/nvim
 readonly COC_SETTINGS_JSON=$VIM_DIR/coc-settings.json
 readonly COC_SETTINGS_VIMRC=$VIM_DIR/coc-settings.vimrc
 readonly ZSHRC=~/.zshrc
+readonly TMUXCONF=~/.tmux.conf
 readonly TIMESTAMP=$(date "+%y-%m-%d-%H-%M")
 readonly LOCAL_INSTALL_DIR=$HOME/.local
 
@@ -10,6 +11,7 @@ BASEDIR=$(dirname $(realpath "$0"))
 
 VIM_CONF_FILE=${BASEDIR}/init.vim
 ZSH_CONF_FILE=${BASEDIR}/zshrc
+TMUX_CONF_FILE=${BASEDIR}/tmux.conf
 
 CMAKE_VERSION=3.20.5
 TMUX_VERSION=3.2
@@ -83,7 +85,6 @@ if ! command -v node &> /dev/null; then
 	popd
 fi
 
-exit 1
 echo "Checking and installing Ninja..."
 if ! command -v ninja &> /dev/null; then
 	git clone -b release git://github.com/ninja-build/ninja.git \
@@ -97,13 +98,18 @@ fi
 # needed for ccls
 # TODO(dimlek): check whether Clang+LLVM is installed
 echo "Checking and installing Clang+LLVM..."
-LLVM_VERSION=12.0.0
-git clone -b llvmorg-${LLVM_VERSION} https://github.com/llvm/llvm-project.git \
-		${LOCAL_INSTALL_DIR}/opt/llvm-project
-cmake -Hllvm -BRelease -G Ninja -DCMAKE_BUILD_TYPE=Release \
-			-DLLVM_TARGETS_TO_BUILD=X86 -DLLVM_ENABLE_PROJECTS=clang \
-			-DCMAKE_INSTALL_PREFIX=${LOCAL_INSTALL_DIR}
-ninja -C Release clangFormat clangFrontendTool clangIndex clangTooling clang
+if ! command -v clang && ! command -v ${LOCAL_INSTALL_DIR}/opt/llvm-project/Release/bin/clang; then
+	LLVM_VERSION=12.0.0
+	git clone -b llvmorg-${LLVM_VERSION} https://github.com/llvm/llvm-project.git \
+			${LOCAL_INSTALL_DIR}/opt/llvm-project
+	pushd ${LOCAL_INSTALL_DIR}/opt/llvm-project
+	cmake -Hllvm -BRelease -G Ninja -DCMAKE_BUILD_TYPE=Release \
+				-DLLVM_TARGETS_TO_BUILD=X86 -DLLVM_ENABLE_PROJECTS=clang \
+				-DCMAKE_INSTALL_PREFIX=${LOCAL_INSTALL_DIR}
+	ninja -C Release clangFormat clangFrontendTool clangIndex clangTooling clang
+	popd
+fi
+
 
 echo "Checking and installing ccls..."
 if ! command -v ccls &> /dev/null; then
@@ -141,6 +147,12 @@ cat <<EOF >$COC_SETTINGS_JSON
 }
 EOF
 
+# install pip3
+if ! command -v pip3 &>/dev/null; then
+	wget -qO /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py
+	python3 /tmp/get-pip.py
+fi
+
 # install cpplint [https://github.com/cpplint/cpplint]
 echo "Checking and installing cpplint..."
 if ! command -v ccls &>/dev/null; then
@@ -149,7 +161,7 @@ fi
 
 
 echo "Checking and installing tmux..."
-if ! command -v tmux &>/dev/null; then
+#if ! command -v tmux &>/dev/null; then
 	# install prerequisites here (libevent and ncurses)
 	# TODO(): add prerequisites
 	git clone -b ${TMUX_VERSION} https://github.com/tmux/tmux.git \
@@ -159,15 +171,24 @@ if ! command -v tmux &>/dev/null; then
 	sh ./autogen.sh
 	./configure --prefix=${LOCAL_INSTALL_DIR} && make && make install
 	popd
-fi
+#fi
 
 echo "Checking and installing TPM (Tmux Plugin Manager)..."
 if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
 	git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 fi
 
-# TODO(): Install ranger and also set image preview mode if supported
+echo "Setting up tmux config file..."
+if ! diff -I '^"' ${TMUX_CONF_FILE} ${TMUXCONF}; then
+	if [ -f ${TMUXCONF} ]; then
+		old_tmuxconf="$TMUXCONF.$TIMESTAMP"
+		cp $TMUXCONF $old_tmuxconf
+		echo "# old tmux.conf backed up to $old_tmuxconf" > $TMUXCONF
+	fi
+  cat $TMUX_CONF_FILE >> $TMUXCONF
+fi
 
+# TODO(): Install ranger and also set image preview mode if supported
 
 echo "Checking and installing zsh..."
 if ! command -v zsh &>/dev/null; then
