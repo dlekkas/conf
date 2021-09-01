@@ -161,9 +161,10 @@ fi
 
 
 echo "Checking and installing tmux..."
-#if ! command -v tmux &>/dev/null; then
-	# install prerequisites here (libevent and ncurses)
-	# TODO(): add prerequisites
+if ! command -v tmux &>/dev/null; then
+	# install prerequisites (libevent, ncurses and yacc)
+	sudo apt install libevent-dev libncurses5-dev libncursesw5-dev byacc
+
 	git clone -b ${TMUX_VERSION} https://github.com/tmux/tmux.git \
 							 ${LOCAL_INSTALL_DIR}/opt/tmux
 	# build from source and install to custom location
@@ -171,7 +172,7 @@ echo "Checking and installing tmux..."
 	sh ./autogen.sh
 	./configure --prefix=${LOCAL_INSTALL_DIR} && make && make install
 	popd
-#fi
+fi
 
 echo "Checking and installing TPM (Tmux Plugin Manager)..."
 if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
@@ -205,8 +206,15 @@ if ! command -v zsh &>/dev/null; then
 
 	# useful if we can't use `chsh` to change shell which means that the shell is
 	# not contained in `/etc/shells`
-	echo '[ -f $HOME/.local/bin/zsh ] && exec $HOME/bin/zsh -l' >> $HOME/.profile
+	echo '[ -f $HOME/.local/bin/zsh ] && exec $HOME/.local/bin/zsh -l' >> $HOME/.profile
 	# TODO(dimlek): offer an alternative to change the shell
+fi
+
+
+echo "Installing fzf..."
+if ! command -v fzf &>/dev/null; then
+	git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+	~/.fzf/install
 fi
 
 
