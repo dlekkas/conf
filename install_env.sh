@@ -147,6 +147,17 @@ cat <<EOF >$COC_SETTINGS_JSON
 }
 EOF
 
+# (optional) install bear (used to generate compile_commands.json file)
+if ! command -v bear &>/dev/null; then
+	sudo apt install libfmt-dev libspdlog-dev
+	sudo apt install libgrpc++-dev protobuf-compiler-grpc
+	git clone https://github.com/rizsotto/Bear.git ${LOCAL_INSTALL_DIR}/opt/bear
+	mkdir ${LOCAL_INSTALL_DIR}/opt/bear/build
+	pushd ${LOCAL_INSTALL_DIR}/opt/bear/build
+	cmake -DENABLE_UNIT_TESTS=OFF -DENABLE_FUNC_TESTS=OFF \
+				-DCMAKE_INSTALL_PREFIX=${LOCAL_INSTALL_DIR} ../
+	popd
+
 # install pip3
 if ! command -v pip3 &>/dev/null; then
 	wget -qO /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py
@@ -206,8 +217,8 @@ if ! command -v zsh &>/dev/null; then
 
 	# useful if we can't use `chsh` to change shell which means that the shell is
 	# not contained in `/etc/shells`
-	echo '[ -f $HOME/.local/bin/zsh ] && exec $HOME/.local/bin/zsh -l' >> $HOME/.profile
 	# TODO(dimlek): offer an alternative to change the shell
+	echo '[ -f $HOME/.local/bin/zsh ] && exec $HOME/.local/bin/zsh -l' >> $HOME/.profile
 fi
 
 
@@ -219,7 +230,6 @@ fi
 
 
 echo "Installing ohmyzsh ..."
-# TODO(dimlek): add build from source for zsh
 rm -rf ~/.oh-my-zsh
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --keep-zshrc --unattended
 if ! grep -q "^\s*source \$ZSH/oh-my-zsh.sh" $ZSHRC; then
@@ -229,6 +239,7 @@ if ! grep -q "^\s*source \$ZSH/oh-my-zsh.sh" $ZSHRC; then
 export ZSH=~/.oh-my-zsh
 ZSH_THEME="robbyrussell"
 plugins=(git fzf)
+source \$HOME/.aliases
 source \$ZSH/oh-my-zsh.sh
 EOF
 
@@ -245,3 +256,9 @@ fi
 EOF
 
 fi
+
+
+# (optional) download linux kernel locally
+# git clone git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git
+# cd linux-stable
+# git checkout <version>
